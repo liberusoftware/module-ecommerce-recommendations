@@ -13,10 +13,4 @@ enum ExclusionReason: string
     case OutOfStock = 'out_of_stock';
     case Suppressed = 'suppressed';
     case UnresolvableRef = 'unresolvable_ref';
-
-    /** Whether answering this needs the catalogue seam. */
-    public function needsCatalogue(): bool
-    {
-        return $this === self::OutOfStock || $this === self::Suppressed || $this === self::UnresolvableRef;
-    }
 }

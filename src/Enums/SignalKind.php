@@ -12,10 +12,4 @@ enum SignalKind: string
     case Purchase = 'purchase';
     case Wishlist = 'wishlist';
     case Rate = 'rate';
-
-    /** Only a completed purchase evidences a co-purchase. */
-    public function evidencesCoPurchase(): bool
-    {
-        return $this === self::Purchase;
-    }
 }

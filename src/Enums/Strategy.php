@@ -21,12 +21,6 @@ enum Strategy: string
         return $this === self::Manual;
     }
 
-    /** Popularity is about the store, so its claims carry no anchor. */
-    public function isAnchored(): bool
-    {
-        return $this !== self::Popularity;
-    }
-
     /**
      * Whether a claim from this strategy is a statement about people.
      * A category overlap is a statement about the catalogue, so no floor
@@ -35,11 +29,5 @@ enum Strategy: string
     public function describesSubjects(): bool
     {
         return $this === self::Collaborative || $this === self::Popularity;
-    }
-
-    /** @return list<self> */
-    public static function generated(): array
-    {
-        return [self::Collaborative, self::ContentSimilarity, self::Popularity];
     }
 }
