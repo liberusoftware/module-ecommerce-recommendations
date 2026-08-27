@@ -1,0 +1,35 @@
+{
+    "name": "ecommerce-recommendations",
+    "version": "0.1.0",
+    "description": "The claim that one product is worth showing next to another and the evidence behind it: derived signals, generation runs, scored affinities per strategy, and the placement a surface was served with its exclusions and its explanation.",
+    "category": "capability",
+    "provider": "Liberu\\Ecommerce\\Recommendations\\RecommendationsServiceProvider",
+    "requires": {
+        "packages": {}
+    },
+    "features": [
+        "Analytics owns the observation and this module owns the inference; it stores derived signals of its own and reads no event stream belonging to another module",
+        "A signal arrives either by a direct call or through the SignalSource seam, and with nothing bound the module ingests nothing rather than inventing page-view tracking",
+        "The module never calls session(): a signal carries whatever subject reference the caller supplies, and a signal with no subject is a legitimate popularity input",
+        "An affinity is a derived directional scored claim between two catalogue references owned by one strategy, and a placement is what a surface asked for and what it was given",
+        "Four strategies and no more: collaborative, content_similarity, popularity and manual, as a backed enum, so adding one is a code change with a test rather than a row",
+        "The strategy is part of the affinity's unique key, so two strategies may both claim one pair and neither silently overwrites the other's score",
+        "A score is a ratio in zero to one that its strategy can defend, never a count divided by an assumed maximum, and the model refuses anything outside that range",
+        "Scores are normalised per strategy against the candidate set actually read, at serve time, so a popularity score and a co-purchase confidence can be ranked against each other",
+        "Generation is a run that records its strategy, window, counts in and out and outcome; an affinity the newest successful run did not reassert is superseded, with an audit row",
+        "A derived claim about people is withheld unless a configurable floor of distinct subjects stands behind it, so an aggregate that could single somebody out is never asserted",
+        "Content similarity is a statement about the catalogue rather than about people, so the anonymity floor does not apply to it",
+        "Co-occurrence is counted by distinct occurrence, so one order carrying a product on two lines is one piece of evidence and not four",
+        "A manual affinity outranks a computed one of any score, and the placement names which produced each entry",
+        "Every serve path is deterministic: same store, same shopper, same catalogue state, same window gives the same list, and variety takes an explicit seed the placement stores",
+        "There is no implicit fallback from an anchored slot to popularity, because a fallback is what made an empty answer indistinguishable from a broken one",
+        "Every empty placement names the precondition that failed: no signal source bound, no signals recorded, no generation run, no affinities for the anchor, or all candidates excluded",
+        "Exclusions are one list evaluated once — is-anchor, already-purchased, already-in-cart, out-of-stock, suppressed, unresolvable reference — and every removal is counted on the placement",
+        "An unresolvable catalogue reference is reported as an exclusion rather than dropped, so asking for ten and getting four always has an answer",
+        "A placement is recorded before it is returned, so the explanation the shopper sees and the one an operator audits are the same row",
+        "Candidates are ordered and limited in SQL rather than after hydration, and the catalogue is referenced by opaque string and never joined",
+        "Erasure removes a person's signals and placements across every tenant and keeps the aggregate affinities their behaviour contributed to; export walks the same set",
+        "A subject-keyed signal carries a retention window, and a host that never configured one gets a refusal rather than a window of zero",
+        "Every table carries tenant_id NOT NULL with no default, and every relation restates it under a guard that survives withCount"
+    ]
+}
