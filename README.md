@@ -1,84 +1,63 @@
-# Ecommerce: Recommendations Core Module
+# ecommerce-recommendations
 
-> This package is the authoritative, provider-neutral implementation of Recommendations. It owns domain behavior and data; optional API, Filament, Livewire, React, Vue, and Nuxt packages translate its public contracts for their surfaces.
+The claim that one product is worth showing next to another, and the evidence behind that claim.
 
-[Software](https://liberusoftware.com) ·
-[Hosting](https://liberuhosting.com) ·
-[Services](https://liberuservices.com) ·
-[Liberu Group](https://liberugroup.com)
+## What it owns
 
-![PHP](https://img.shields.io/badge/PHP-8.5-777BB4?logo=php&logoColor=white) ![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white)
-[![Latest release](https://img.shields.io/github/v/release/liberusoftware/module-ecommerce-recommendations?sort=semver)](https://github.com/liberusoftware/module-ecommerce-recommendations/releases/latest) [![Tests](https://github.com/liberusoftware/module-ecommerce-recommendations/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/liberusoftware/module-ecommerce-recommendations/actions/workflows/tests.yml)
+The signals a shopper generates, the strategies that turn signals into claims, the stored claim
+itself, the exclusions applied when a surface asks, and the explanation of what it got back.
 
-## Features
+## What it does not own
 
-- Fully compatible with **Laravel 13**, **PHP 8.5**, and **Pest 5**.
-- Built following the domain-driven design guidelines of the Liberu architecture.
-- Reusable, presenting a clean public contract and boundaries.
-- Adheres to the strict database, security, and authorization standards of Liberu.
+Products, categories, orders, carts and customers. Those belong to modules that already shipped, and
+this one reads them through seams and never joins their tables. It also does not own the raw event
+stream: **analytics owns the observation, and this module owns the inference.** An analytics event is
+a record that something happened, kept for measurement and governed by consent. A recommendation
+signal is a derived, purpose-limited input to a ranking. They describe the same click and they are
+not the same record — see [`docs/adr/0001-observation-and-inference.md`](docs/adr/0001-observation-and-inference.md).
 
-## Requirements
+## The fact that shaped it
 
-- **PHP 8.5**
-- **Composer 2**
-- A supported database (e.g. MySQL, PostgreSQL, SQLite)
+In the application this was extracted from, nothing ever wrote an interaction, ran the generator or
+displayed a recommendation. The feature was inert end to end and its tests were its only caller —
+and nobody could tell, because the fallback path returned an empty collection whether the shopper was
+new, nothing had ever been recorded, or the generator had never run. Three operational states, one
+output, in a feature whose whole job is to be quietly absent when it has nothing to say.
 
-## Quick start
+So every answer here carries why it is what it is: which strategy produced each entry, how many
+candidates were examined, what each exclusion removed, and — when the answer is empty — the
+precondition that failed, by name.
 
-To install this package via Composer, run:
+## What it publishes
+
+| | |
+|---|---|
+| `Actions\RecordSignal` | One interaction, as the caller states it; idempotent on the cause |
+| `Actions\IngestSignals` | The same, pulled through the `SignalSource` seam |
+| `Actions\RunGeneration` | One strategy, one window, one audited run with retraction |
+| `Actions\RecordManualAffinity` | A merchandiser's own claim, ranked against the computed ones |
+| `Actions\WithdrawAffinity` | Retract one claim by hand |
+| `Actions\ServePlacement` | Plan, record, then return |
+| `Actions\ForgetSubject` | Erase a person across every tenant |
+| `Actions\PruneExpiredSignals` | Enforce the retention window, or refuse for want of one |
+| `Queries\PlanPlacement` | The same answer, computed and written nowhere |
+| `Queries\ExplainPlacement` | A stored placement, read back months later |
+| `Queries\ListAffinities` | What a merchant currently claims |
+| `Queries\ExportSubjectRecord` | Everything held about one person |
+| `Contracts\SignalSource` | Where interactions come from. Unbound by default |
+| `Contracts\CatalogueReader` | Where a product reference resolves. Unbound by default |
+| `Contracts\ShopperContext` | Where a live cart is read. Unbound by default |
+| `Events\*` | `AffinitiesGenerated`, `PlacementServed`, `SubjectForgotten` |
+
+Six tables, all prefixed `recommendations_`: `signals`, `generation_runs`, `affinities`,
+`affinity_events`, `placements`, `placement_entries`.
+
+## Installing
 
 ```bash
-composer require liberusoftware/module-ecommerce-recommendations
+composer require liberusoftware/ecommerce-recommendations
 ```
 
-## Documentation
-
-- [Liberu Main Documentation](https://github.com/liberusoftware/documentation)
-- [Architecture & Standards Index](https://github.com/liberusoftware/documentation/tree/main/architecture)
-
-## Related Liberu Projects
-
-| Project | Repository | Purpose |
-| --- | --- | --- |
-| **Boilerplate** | [liberusoftware/boilerplate-laravel](https://github.com/liberusoftware/boilerplate-laravel) | Shared Laravel application foundation and reference composition |
-| **CMS** | [liberu-cms/cms-laravel](https://github.com/liberu-cms/cms-laravel) | Structured content, publishing, media, multisite, and headless delivery |
-| **CRM** | [liberu-crm/crm-laravel](https://github.com/liberu-crm/crm-laravel) | Customer data, sales, marketing, service, and customer success |
-| **Billing** | [liberu-billing/billing-laravel](https://github.com/liberu-billing/billing-laravel) | Products, subscriptions, invoicing, payments, and provisioning |
-| **Accounting** | [liberu-accounting/accounting-laravel](https://github.com/liberu-accounting/accounting-laravel) | Ledgers, banking, tax, expenses, close, and financial reporting |
-| **Ecommerce** | [liberu-ecommerce/ecommerce-laravel](https://github.com/liberu-ecommerce/ecommerce-laravel) | Catalog, checkout, orders, fulfillment, returns, B2B, and omnichannel commerce |
-| **Control Panel** | [liberu-control-panel/control-panel-laravel](https://github.com/liberu-control-panel/control-panel-laravel) | Hosting, infrastructure, DNS, mail, databases, backups, and security operations |
-| **Automation** | [liberu-automation/automation-laravel](https://github.com/liberu-automation/automation-laravel) | Governed workflows, provider-neutral AI, approvals, and connectors |
-
-## Security
-
-Please do not report security vulnerabilities through public GitHub issues.
-Follow our [Security Policy](https://github.com/liberusoftware/documentation/blob/main/architecture/SECURITY.md) for private reporting and supported versions.
-
-## License
-
-This project is open-source software. You may use, modify, and distribute it
-under the terms described in [LICENSE.md](LICENSE.md).
-
-The linked license text is authoritative; this summary is not legal advice.
-
-## Feedback and contributing
-
-Feedback and contributions are welcome. You can help by reporting reproducible
-bugs, proposing focused enhancements, improving documentation or translations,
-and submitting tested code changes.
-
-Before contributing, please read [CONTRIBUTING.md](https://github.com/liberusoftware/documentation/blob/main/standards/CONTRIBUTING.md) and our
-[Code of Conduct](https://github.com/liberusoftware/documentation/blob/main/architecture/CODE_OF_CONDUCT.md). Search existing issues first, then use
-the appropriate issue template. Pull requests should explain the problem and
-approach, remain focused, include or update tests, pass the required workflows,
-and document user-visible or breaking changes.
-
-## Contributors
-
-Thank you to everyone who helps improve Liberu.
-
-<a href="https://github.com/liberusoftware/module-ecommerce-recommendations/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=liberusoftware/module-ecommerce-recommendations" alt="Contributors to liberusoftware/module-ecommerce-recommendations">
-</a>
-
-[View the full contributors graph](https://github.com/liberusoftware/module-ecommerce-recommendations/graphs/contributors).
+Installing boots nothing. The host's module manager registers the provider when the module is named
+in `MODULES_ENABLED`. See [`docs/adoption.md`](docs/adoption.md) for what a host must bind and what
+it deletes.
